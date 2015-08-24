@@ -63,7 +63,13 @@ def create_paths(paths):
         If paths is a string, this is the path to search for and create. 
         If paths is a list, each one is a path to search for and create
     """
-    from astropy.extern.six import string_types
+    try:
+        from six import string_types
+    except ImportError:
+        try:
+            from astropy.extern.six import string_types
+        except ImportError:
+            raise DatapypUtilsError("You must have either 'six' or 'astropy' installed")
     if isinstance(paths, string_types):
         paths=[paths]
     for path in paths:

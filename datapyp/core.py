@@ -123,9 +123,7 @@ class StepContainer:
         func: function
             A function to be run in the pipeline. All functions must return
             a dictionary with (at a minimum) a ``status`` key whose value is either
-            ``success`` or ``error``. It is also common to return a ``warnings`` key whose
-            value is an astropy table that contains a list of warnings that may have
-            occured during the step. The entire result dictionary returned from the function
+            ``success`` or ``error``. The entire result dictionary returned from the function
             is saved in the pipeline's log file.
         tags: list (optional)
             A list of tags used to identify the step. When running the pipeline the user
