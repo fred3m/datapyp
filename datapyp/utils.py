@@ -3,6 +3,9 @@ import logging
 
 logger = logging.getLogger('datapyp.utils')
 
+class DatapypUtilsError(Exception):
+    pass
+
 def str_2_bool(bool_str):
     """
     Case independent function to convert a string representation of a 
@@ -10,7 +13,7 @@ def str_2_bool(bool_str):
     insensitive, and will also accept part of a boolean string 
     (``'t'``/``'f'``, ``'y'``/``'n'``).
     
-    Raises a :py:class:`astromatic.utils.pipeline.PipelineError` 
+    Raises a :py:class:`astromatic.utils.pipeline.DatapypUtilsError` 
     if an invalid expression is entered.
     
     Parameters
@@ -24,7 +27,7 @@ def str_2_bool(bool_str):
     elif 'false'.startswith(lower_str) or 'no'.startswith(lower_str):
         return False
     else:
-        raise PipelineError(
+        raise DatapypUtilsError(
             "'{0}' did not match a boolean expression "
             " (true/false, yes/no, t/f, y/n)".format(bool_str))
 
@@ -40,7 +43,7 @@ def get_bool(prompt):
     """
     try:
         bool_str = str_2_bool(raw_input(prompt))
-    except PipelineError:
+    except DatapypUtilsError:
         logger.warn(
             "'{0}' did not match a boolean expression "
             "(true/false, yes/no, t/f, y/n)".format(bool_str))
@@ -68,7 +71,7 @@ def create_paths(paths):
             os.makedirs(path)
         except OSError:
             if not os.path.isdir(path):
-                raise PipelineError("Problem creating new directory, check user permissions")
+                raise DatapypUtilsError("Problem creating new directory, check user permissions")
 
 def check_path(path, auto_create=False):
     """
@@ -86,4 +89,4 @@ def check_path(path, auto_create=False):
         if auto_create or get_bool("'{0}' does not exist, create (y/n)?".format(path)):
             create_paths(path)
         else:
-            raise PipelineError("{0} does not exist".format(path))
+            raise DatapypUtilsError("{0} does not exist".format(path))
