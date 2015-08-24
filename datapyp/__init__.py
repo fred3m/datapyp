@@ -14,4 +14,4 @@ from ._astropy_init import *
 if not _ASTROPY_SETUP_:
     pass
 
-from core import Pipeline
+from datapyp.core import Pipeline
