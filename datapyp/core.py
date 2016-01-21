@@ -224,7 +224,7 @@ class Pipeline(StepContainer):
             warnings.warn(
                 "'log' path has not been set for the pipeline. Log files will not be saved.")
     
-    def save_pipeline(self, logfile, dump_type=None):
+    def save_pipeline(self, logfile, dump_type=None, save_globals=False):
         """
         Save the pipeline to file
         
@@ -246,16 +246,16 @@ class Pipeline(StepContainer):
         if dump_type=='pickle' or dump_type is None:
             try:
                 import cPickle
-                cPickle.dump(self, open(logfile, 'wb'))
+                cPickle.dump(save_obj, open(logfile, 'wb'))
                 dump_type = 'pickle'
-                logger.debug('saved using cPickle')
+                logger.info('saved using cPickle')
                 return True
             except:
                 try:
                     import pickle
                     pickle.dump(self, open(logfile, 'wb'))
                     dump_type = 'pickle'
-                    logger.debug('saved using pickle')
+                    logger.info('saved using pickle')
                     return True
                 except:
                     if dump_type=='pickle':
@@ -268,7 +268,7 @@ class Pipeline(StepContainer):
                 import dill
                 dill.dump(self, open(logfile, 'wb'))
                 dump_type = 'dill'
-                logger.debug('saved using dill')
+                logger.info('saved using dill')
                 return True
             except ImportError:
                 if dump_type is None:
@@ -308,7 +308,7 @@ class Pipeline(StepContainer):
     def run(self, run_tags=[], ignore_tags=[], run_steps=None, run_name=None,
             resume=False, ignore_errors=None, ignore_exceptions=None,
             start_idx=None, current_step_idx=None, dump_type=None,
-            log_exception=False):
+            log_exception=False, save_globals=False):
         """
         Run the pipeline given a list of PipelineSteps
         
@@ -357,6 +357,8 @@ class Pipeline(StepContainer):
         log_exception: bool (optional)
             If the pipeline cannot be saved, if ``log_exception==True`` an exception
             will be raised.
+        save_globals: bool
+            Whether or not to save global variables. *Default is False*
         """
         # If no steps are specified and the user is not resuming a previous run,
         # run all of the steps associated with the pipeline
@@ -427,10 +429,12 @@ class Pipeline(StepContainer):
                     step.results = {
                         'status': 'some failed'
                     }
+            if hasattr(step, 'finalizer') and step.finalizer is not None:
+                step.finalizer(self, step)
             # Increase the run_step_idx and save the pipeline
             self.run_step_idx+=1
             if not skip_save:
-                self.save_pipeline(logfile, dump_type)
+                self.save_pipeline(logfile, dump_type, save_globals)
         result = {
             'status': 'success'
         }
@@ -442,7 +446,7 @@ class PipelineStep:
     associated with it and stores them in the pipeline.
     """
     def __init__(self, func, step_id=None, tags=[], ignore_errors=False, ignore_exceptions=False, 
-            func_kwargs={}):
+            func_kwargs={}, finalizer=None):
         """
         Initialize a PipelineStep object
         
@@ -483,6 +487,7 @@ class PipelineStep:
         self.ignore_exceptions = ignore_exceptions
         self.func_kwargs = func_kwargs
         self.results = None
+        self.finalizer=finalizer
 
 class MultiprocessStep(StepContainer):
     """
@@ -532,6 +537,7 @@ class MultiprocessStep(StepContainer):
         
         # Set the initialization function
         self.initializer = initializer
+        self.finalizer = finalizer
         self.steps = []
         # Check whether each step is a PipelineStep or a dict-like object
         for step in steps:
