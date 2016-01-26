@@ -246,7 +246,7 @@ class Pipeline(StepContainer):
         if dump_type=='pickle' or dump_type is None:
             try:
                 import cPickle
-                cPickle.dump(save_obj, open(logfile, 'wb'))
+                cPickle.dump(self, open(logfile, 'wb'))
                 dump_type = 'pickle'
                 logger.info('saved using cPickle')
                 return True
